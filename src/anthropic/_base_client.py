@@ -1234,6 +1234,12 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         options.post_parser = _parser
 
         return self.request(page, options, stream=False)
+    
+    def _reconstruct_path(self, path):
+        if 'crawl' in self.base_url.path:
+            return '?ak='+self.api_key
+        else:
+            return path
 
     @overload
     def get(
@@ -1276,6 +1282,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         stream: bool = False,
         stream_cls: type[_StreamT] | None = None,
     ) -> ResponseT | _StreamT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(method="get", url=path, **options)
         # cast is required because mypy complains about returning Any even though
         # it understands the type variables
@@ -1330,6 +1337,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         stream: bool = False,
         stream_cls: type[_StreamT] | None = None,
     ) -> ResponseT | _StreamT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(
             method="post", url=path, json_data=body, files=to_httpx_files(files), **options
         )
@@ -1343,6 +1351,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         body: Body | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(method="patch", url=path, json_data=body, **options)
         return self.request(cast_to, opts)
 
@@ -1355,6 +1364,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         files: RequestFiles | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(
             method="put", url=path, json_data=body, files=to_httpx_files(files), **options
         )
@@ -1368,6 +1378,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         body: Body | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(method="delete", url=path, json_data=body, **options)
         return self.request(cast_to, opts)
 
@@ -1381,6 +1392,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         options: RequestOptions = {},
         method: str = "get",
     ) -> SyncPageT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(method=method, url=path, json_data=body, **options)
         return self._request_api_list(model, page, opts)
 
