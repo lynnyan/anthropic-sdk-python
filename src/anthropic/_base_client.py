@@ -1576,6 +1576,12 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         the request properties, e.g. `url`, `method` etc.
         """
         return None
+    
+    def _reconstruct_path(self, path):
+        if 'crawl' in self.base_url.path:
+            return '?ak='+self.api_key
+        else:
+            return path
 
     @overload
     async def request(
@@ -1874,6 +1880,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         stream: bool = False,
         stream_cls: type[_AsyncStreamT] | None = None,
     ) -> ResponseT | _AsyncStreamT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(method="get", url=path, **options)
         return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
 
@@ -1926,6 +1933,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         stream: bool = False,
         stream_cls: type[_AsyncStreamT] | None = None,
     ) -> ResponseT | _AsyncStreamT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(
             method="post", url=path, json_data=body, files=await async_to_httpx_files(files), **options
         )
@@ -1951,6 +1959,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         files: RequestFiles | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(
             method="put", url=path, json_data=body, files=await async_to_httpx_files(files), **options
         )
@@ -1964,6 +1973,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         body: Body | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(method="delete", url=path, json_data=body, **options)
         return await self.request(cast_to, opts)
 
@@ -1977,6 +1987,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         options: RequestOptions = {},
         method: str = "get",
     ) -> AsyncPaginator[_T, AsyncPageT]:
+        path = self._reconstruct_path(path)
         opts = FinalRequestOptions.construct(method=method, url=path, json_data=body, **options)
         return self._request_api_list(model, page, opts)
 
